@@ -20,11 +20,12 @@
 package thrift
 
 import (
-	"fmt"
 	"net"
 	"sync"
 	"time"
 )
+
+type LISTEN_FUNC func(string, string)
 
 type TServerSocket struct {
 	listener      net.Listener
@@ -34,6 +35,15 @@ type TServerSocket struct {
 	// Protects the interrupted value to make it thread safe.
 	mu          sync.RWMutex
 	interrupted bool
+
+	lis_func LISTEN_FUNC
+}
+
+func NewTServerSocketFunc(listenAddr string, fn LISTEN_FUNC) (*TServerSocket, error) {
+	v, err := NewTServerSocketTimeout(listenAddr, 0)
+	v.setListenFunc(fn)
+
+	return v, err
 }
 
 func NewTServerSocket(listenAddr string) (*TServerSocket, error) {
@@ -53,6 +63,10 @@ func NewTServerSocketFromAddrTimeout(addr net.Addr, clientTimeout time.Duration)
 	return &TServerSocket{addr: addr, clientTimeout: clientTimeout}
 }
 
+func (p *TServerSocket) setListenFunc(fn LISTEN_FUNC) {
+	p.lis_func = fn
+}
+
 func (p *TServerSocket) Listen() error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -63,7 +77,11 @@ func (p *TServerSocket) Listen() error {
 	if err != nil {
 		return err
 	}
-	fmt.Println("Listen: ", p.addr.Network(), p.addr.String())
+
+	if nil != p.lis_func {
+		p.lis_func(p.addr.Network(), p.addr.String())
+	}
+
 	p.listener = l
 	return nil
 }
