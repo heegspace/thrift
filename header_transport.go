@@ -334,6 +334,8 @@ func (t *THeaderTransport) ReadFrame() error {
 		&t.frameBuffer,
 		io.LimitReader(t.reader, int64(frameSize)),
 	)
+
+	fmt.Println("ReadFrame: ", t.frameBuffer)
 	if err != nil {
 		return err
 	}
@@ -471,6 +473,7 @@ func (t *THeaderTransport) parseHeaders(frameSize uint32) error {
 		}
 	}
 	t.readHeaders = headers
+	fmt.Println("ParseHeaders :", headers)
 
 	return nil
 }
