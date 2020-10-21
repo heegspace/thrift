@@ -3,6 +3,8 @@ package thrift
 import (
 	"context"
 	"fmt"
+
+	"sync"
 )
 
 type TClient interface {
@@ -10,7 +12,9 @@ type TClient interface {
 }
 
 type TStandardClient struct {
-	seqId        int32
+	seqId int32
+
+	mutex        sync.Mutex
 	iprot, oprot TProtocol
 }
 
@@ -79,8 +83,10 @@ func (p *TStandardClient) Recv(iprot TProtocol, seqId int32, method string, resu
 }
 
 func (p *TStandardClient) Call(ctx context.Context, method string, args, result TStruct) error {
+	p.mutex.Lock()
 	p.seqId++
 	seqId := p.seqId
+	p.mutex.Unlock()
 
 	if err := p.Send(ctx, p.oprot, seqId, method, args); err != nil {
 		return err
