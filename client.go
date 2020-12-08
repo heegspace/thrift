@@ -88,6 +88,7 @@ func (p *TStandardClient) Call(ctx context.Context, method string, args, result 
 	seqId := p.seqId
 	p.mutex.Unlock()
 
+	fmt.Println("Call:", method, p.seqId)
 	if err := p.Send(ctx, p.oprot, seqId, method, args); err != nil {
 		return err
 	}
