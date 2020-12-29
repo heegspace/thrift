@@ -91,12 +91,20 @@ func (p *TStandardClient) Call(ctx context.Context, method string, args, result 
 	seqId := p.seqId
 	p.mutex.Unlock()
 
+	var req string
+	var res string
+	defer func() {
+		if Debug {
+			fmt.Println(fmt.Sprintf("[%s]   request: %s, response: %s", method, req, res))
+		}
+	}()
+
 	if Debug {
-		req, err := json.Marshal(args)
+		_req, err := json.Marshal(args)
 		if nil == err {
-			fmt.Println("method: ", method, " , req: ", string(req))
+			req = string(_req)
 		} else {
-			fmt.Println("method: ", method, " , seqId: ", seqId)
+			req = string("Not Request Body.")
 		}
 	}
 
@@ -111,11 +119,11 @@ func (p *TStandardClient) Call(ctx context.Context, method string, args, result 
 
 	err := p.Recv(p.iprot, seqId, method, result)
 	if Debug && nil == err {
-		res, err := json.Marshal(result)
+		_res, err := json.Marshal(result)
 		if nil == err {
-			fmt.Println("method: ", method, " , res: ", string(res))
+			res = string(_res)
 		} else {
-			fmt.Println("method: ", method, " , seqId: ", seqId)
+			res = string("Not Response body.")
 		}
 	}
 
