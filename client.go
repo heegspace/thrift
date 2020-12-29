@@ -2,10 +2,13 @@ package thrift
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"sync"
 )
+
+var Debug bool
 
 type TClient interface {
 	Call(ctx context.Context, method string, args, result TStruct) error
@@ -88,7 +91,15 @@ func (p *TStandardClient) Call(ctx context.Context, method string, args, result 
 	seqId := p.seqId
 	p.mutex.Unlock()
 
-	fmt.Println("Call:", method, p.seqId)
+	if Debug {
+		req, err := json.Marshal(args)
+		if nil == err {
+			fmt.Println("method: ", method, " , req: ", string(req))
+		} else {
+			fmt.Println("method: ", method, " , seqId: ", seqId)
+		}
+	}
+
 	if err := p.Send(ctx, p.oprot, seqId, method, args); err != nil {
 		return err
 	}
@@ -98,5 +109,15 @@ func (p *TStandardClient) Call(ctx context.Context, method string, args, result 
 		return nil
 	}
 
-	return p.Recv(p.iprot, seqId, method, result)
+	err := p.Recv(p.iprot, seqId, method, result)
+	if Debug && nil == err {
+		res, err := json.Marshal(result)
+		if nil == err {
+			fmt.Println("method: ", method, " , res: ", string(res))
+		} else {
+			fmt.Println("method: ", method, " , seqId: ", seqId)
+		}
+	}
+
+	return err
 }
