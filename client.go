@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"sync"
 )
@@ -95,7 +96,8 @@ func (p *TStandardClient) Call(ctx context.Context, method string, args, result 
 	var res string
 	defer func() {
 		if Debug {
-			fmt.Println(fmt.Sprintf("[%s]   request: %s, response: %s", method, req, res))
+			fmt.Println(fmt.Sprintf("%s--[%s] req: %s, res: %s ",
+				time.Now().Format("2006-01-02 15:04:05"), method, req, res))
 		}
 	}()
 
